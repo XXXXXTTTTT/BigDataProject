@@ -150,7 +150,7 @@ async def fetch_user_info(uid:str):
 
 if __name__ == '__main__':
     async def main():
-        uid = 400482416
+        uid = 44444444
         res = await fetch_user_info(uid=uid)
         print(json.dumps(res,indent=2))
     asyncio.run(main())
