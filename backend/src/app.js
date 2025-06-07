@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const hotVideosRouter = require('./routes/hotVideos');
+const proxyRouter = require('./routes/proxy');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -10,6 +11,7 @@ app.use(express.json());
 
 // 路由
 app.use('/api/hot-videos', hotVideosRouter);
+app.use('/proxy', proxyRouter);
 
 // 404处理
 app.use((req, res) => {
