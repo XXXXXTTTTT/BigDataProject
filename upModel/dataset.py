@@ -26,6 +26,15 @@ db_config = {
 # }
 
 
+# 数值型特征，去掉 `name` 和 `avatar_url` 等非数值列
+NUMERCIAL_FEATURES = ['uid','followers', 'total_view', 'total_like', 'total_coin', 
+                          'total_favorite', 'total_share', 'total_comment', 
+                          'total_danmaku', 'total_duration', 'total_videos']
+    
+#最终聚类使用特征
+FEATURES = ['log_followers', 'log_view', 'like_rate', 'engagement_rate', 'duration_engagement']
+
+
 #从数据库中获取数据
 
 def load_data_from_db():
@@ -44,6 +53,57 @@ def load_data_from_db():
     conn.close()  # 关闭数据库连接
     return df
 
+#根据UID从数据库中获取数据
+
+def get_data_from_db(uid):
+    # 创建数据库连接
+    conn = pymysql.connect(**db_config)
+    
+    # 使用参数化查询来防止 SQL 注入
+    query = """
+        SELECT 
+            uid, followers, total_view, total_like, total_coin, 
+            total_favorite, total_share, total_comment, total_danmaku, 
+            total_duration, total_videos
+        FROM up_profile
+        WHERE uid = %s;
+    """
+    
+    # 执行查询并加载数据
+    df = pd.read_sql(query, conn, params=(uid,))
+    conn.close()  # 关闭数据库连接
+    
+    if df.empty:
+        print(f"错误: 未找到 uid 为 {uid} 的数据。")
+        return None
+    else:
+        return df
+
+#获取UP主显示信息
+def get_showInfo_from_db(uid):
+    # 创建数据库连接
+    conn = pymysql.connect(**db_config)
+    
+    # 使用参数化查询来防止 SQL 注入
+    query = """
+        SELECT 
+            uid, name, avatar_url,followers, total_view, total_like, total_coin, 
+            total_favorite, total_share, total_comment, total_danmaku, 
+            total_duration, total_videos
+        FROM up_profile
+        WHERE uid = %s;
+    """
+    
+    # 执行查询并加载数据
+    df = pd.read_sql(query, conn, params=(uid,))
+    conn.close()  # 关闭数据库连接
+    
+    if df.empty:
+        print(f"错误: 未找到 uid 为 {uid} 的数据。")
+        return None
+    else:
+        return df
+
 #处理数据
 
 def compute_features(df: pd.DataFrame):
@@ -51,6 +111,12 @@ def compute_features(df: pd.DataFrame):
     # 复制数据以防止修改原数据
     df = df.copy()
 
+
+    
+    
+    # 确保只选择数值型列
+    df = df[NUMERCIAL_FEATURES]
+    
     # 构造新特征
     
     
@@ -106,6 +172,20 @@ def compute_features(df: pd.DataFrame):
     # return scaled_df
 
     return df
+
+#特征标准化
+
+def norm_data(df):
+    # 提取聚类特征列
+    X = df[FEATURES]
+
+    # 标准化特征数据
+    scaler = StandardScaler()
+    X_scaled = scaler.fit_transform(X)
+    
+    return X_scaled, scaler
+
+
 def save_processed_data(df: pd.DataFrame, filename="cluster_ready.csv"):
     """保存处理后的数据到 CSV 文件"""
     # 只保留聚类所需的特征
@@ -116,6 +196,7 @@ def save_processed_data(df: pd.DataFrame, filename="cluster_ready.csv"):
     # 保存为 CSV 文件
     cluster_data.to_csv(filename, index=False)
     print(f"数据处理完毕并已保存为 {filename}")
+
 
 
 #API接口

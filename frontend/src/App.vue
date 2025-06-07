@@ -12,8 +12,10 @@
       <div class="header-right">
         <a-dropdown>
           <a class="user-dropdown" @click.prevent>
-            <a-avatar :size="32" icon="user" />
-            <span class="username">管理员</span>
+            <a-avatar :size="64">
+              <img src="@/assets/2233.png" alt="Logo" style="width: 100%; height: 100%; object-fit: cover;"/>
+            </a-avatar>
+            <span class="username">2233娘</span>
           </a>
           <template #overlay>
             <a-menu>
@@ -307,7 +309,7 @@ html, body {
       color: #fff;
 
       .username {
-        font-size: 14px;
+        font-size: 20px;
       }
     }
   }

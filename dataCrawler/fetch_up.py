@@ -3,7 +3,7 @@ import random
 import json
 import pymysql
 from bilibili_api import user, video, Credential, request_settings
-
+from bilibili_api.exceptions import ApiException
 
 
 # ============ 全局配置 ==============
@@ -107,12 +107,13 @@ def insert_into_mysql(data: dict):
     cursor.close()
     connection.close()
 
-# 生成随机 UID（范围可调）
+# 生成随机 UID
 #8263502
 def generate_random_uid():
+    #(min, max)
     return random.randint(1000000, 800000000)
 
-#从upUid.txt文件中批量爬取Up数据
+#从.txt文件中批量爬取Up数据
 def load_uids_from_txt(path: str):
     with open(path, "r", encoding="utf-8") as f:
         line = f.readline().strip()
@@ -133,7 +134,7 @@ async def batch_crawl_from_uid_file(file_path):
                     print(f"✅ 成功抓取 UID: {uid}，粉丝数: {data['followers']}")
                     insert_into_mysql(data)
                 else:
-                    print(f"⚠️ 跳过 UID: {uid}（无效、粉丝少或无视频）")
+                    print(f"⚠️ 跳过 UID: {uid}(无效、粉丝少、视频过多或无视频)")
                 break
             except Exception as e:
                 print(f"❌ UID失败: {uid} 失败，错误: {e}")
@@ -153,6 +154,7 @@ async def batch_crawl_from_uid_file(file_path):
 
 # 拉取视频列表
 async def fetch_all_videos(u: user.User):
+    MAX_VIDEOS = 5000  # 设置最大视频数量限制
     page = 1
     videos = []
     while True:
@@ -162,7 +164,16 @@ async def fetch_all_videos(u: user.User):
         if not video_list:
             break
         videos.extend(video_list)
+        
+        # 检查是否超过最大限制
+        if len(videos) > MAX_VIDEOS:
+            print(f"警告: 用户 {u.uid} 投稿视频超过 {MAX_VIDEOS} 条，停止爬取")
+            return None  # 超过限制返回None
+        
         page += 1
+        
+
+        
     return [v.get("bvid", "") for v in videos]
 
 #并发获取视频数据
@@ -250,7 +261,13 @@ async def fetch_user_info(uid: int):
             stats = await get_video_stats_concurrent(bvids)
             res.update(stats)
             return res
-
+        except ApiException as api_exc:  # 专门捕获API异常
+            if api_exc.code == -404:
+                print(f"[跳过] UID {uid} 不存在(404错误),跳过处理")
+                return None  # 直接返回None跳过用户
+            else:
+                print(f"[API错误] UID {uid} 获取失败: 代码{api_exc.code}, 信息: {api_exc.msg}")
+                await asyncio.sleep(600)  # 其他API错误仍然重试
         except Exception as e:
             print(f"[错误] UID {uid} 获取失败: {e}")
             await asyncio.sleep(600)

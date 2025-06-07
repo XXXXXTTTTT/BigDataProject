@@ -55,3 +55,37 @@ tags : 视频标签   (如果需要使用,请自行提取.所有标签蹦整合�
 当前的.sql文件,只是一个预览版的(主要用于确定格式),后续数据量还会增加.
 
 数据爬取的内容,只涉及到`fetch_hot.py`这个文件
+
+
+
+
+
+## UP主数据
+
+获取数据只需用up_profile.sql脚本导入至Mysql数据库即可
+
+
+
+UP主数据爬取过程为根据一个uid文档进行批量爬取, 每个UID对应一个UP， 每次爬取其基本信息(昵称, 头像URL， 粉丝数等),  每个视频的数据(播放量、点赞数、投币数、收藏数、评论数、弹幕数等), 由于B站官方对此块的爬取较为敏感故最后调试出的稳定版本速度会稍慢, 但主打一个稳定
+
+UP主数据爬取文件为fetch_up.py
+
+### 字段含义
+
+```
+uid : #up主UID
+name : #up主昵称
+avatar_url : #头像url
+total_videos : len(video_ids),
+total_view : 0,  # 总播放量
+total_like : 0,  # 总点赞数
+total_coin : 0,  # 总投币数
+total_favorite : 0,  # 总收藏数
+total_share : 0,  # 总转发数
+total_comment : 0,  # 总评论数
+total_danmaku : 0,  # 总弹幕数
+total_duration : 0,  # 总视频时长（秒）
+total_chargers : 0,  # 总充电人数
+total_videos_count : 0,  # 总分P数
+```
+

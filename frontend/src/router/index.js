@@ -4,7 +4,7 @@ const routes = [
   {
     path: '/dashboard',
     name: 'Dashboard',
-    component: () => import('@/views/Dashboard/Dashboard.vue'),
+    component: () => import('@/views/Dashboard.vue'),
     meta: {
       title: '数据概览',
       keepAlive: true
@@ -13,7 +13,7 @@ const routes = [
   {
     path: '/uploader',
     name: 'UploaderAnalysis',
-    component: () => import('@/views/UpLoaderAnalysis/UploaderAnalysis.vue'),
+    component: () => import('@/views/UploaderAnalysis.vue'),
     meta: {
       title: 'UP主分析',
       keepAlive: true
@@ -22,7 +22,7 @@ const routes = [
   {
     path: '/video',
     name: 'VideoAnalysis',
-    component: () => import('@/views/VideoAnalysis/index.vue'),
+    component: () => import('@/views/VideoAnalysis.vue'),
     meta: {
       title: '视频分析',
       keepAlive: true
