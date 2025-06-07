@@ -1,10 +1,10 @@
 <template>
   <aside class="sidebar" :class="{ 'collapsed': isSidebarCollapsed }">
-    <button class="collapse-button" @click="toggleSidebar">
-      <ChevronLeftIcon v-if="!isSidebarCollapsed" />
-      <ChevronRightIcon v-else />
-    </button>
     <nav class="sidebar-nav">
+      <button class="collapse-button" @click="toggleSidebar">
+        <ChevronLeftIcon v-if="!isSidebarCollapsed" />
+        <ChevronRightIcon v-else />
+      </button>
       <ul>
         <li 
           v-for="item in menuItems" 
@@ -71,13 +71,15 @@ const handleNavigation = (path) => {
 
 <style scoped>
 .sidebar {
-  width: var(--sidebar-width);
+  width: 200px;
+  min-width: 60px;
+  max-width: 240px;
+  overflow-x: hidden;
+  overflow-y: auto;
   background-color: var(--card);
   border-right: 1px solid var(--border);
   transition: width 0.3s ease;
   position: relative;
-  overflow-y: auto;
-  height: 100%;
 }
 
 .sidebar.collapsed {
@@ -85,28 +87,25 @@ const handleNavigation = (path) => {
 }
 
 .collapse-button {
-  position: absolute;
-  top: 1rem;
-  right: -12px;
-  width: 24px;
-  height: 24px;
-  background-color: var(--primary);
+  width: 100%;
   border: none;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
+  background: none;
   cursor: pointer;
-  z-index: 10;
+  padding: 12px 0;
 }
 
 .sidebar-nav {
-  padding: 1.5rem 0;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 .sidebar-nav ul {
   list-style: none;
+  padding: 0;
+  margin: 0;
+  flex: 1;
+  overflow-x: hidden;
 }
 
 .sidebar-nav li {
