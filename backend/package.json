@@ -1,0 +1,19 @@
+{
+  "name": "bilibili-backend",
+  "version": "1.0.0",
+  "description": "Bilibili 热门视频数据后端API服务",
+  "main": "src/app.js",
+  "scripts": {
+    "start": "node src/app.js",
+    "dev": "nodemon src/app.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "mysql2": "^3.6.0",
+    "cors": "^2.8.5",
+    "axios": "^1.6.7"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+} 
