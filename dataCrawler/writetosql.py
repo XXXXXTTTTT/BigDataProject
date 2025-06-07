@@ -26,10 +26,10 @@ def insert_bilibili_data(data, host='localhost', port=3306, user='root', passwor
         
         with connection.cursor() as cursor:
             # 检查表是否存在，不存在则创建
-            cursor.execute("SHOW TABLES LIKE 'bilibili_videos'")
+            cursor.execute("SHOW TABLES LIKE 'bilibili_hot_videos'")
             if not cursor.fetchone():
                 create_table_sql = """
-                CREATE TABLE bilibili_videos (
+                CREATE TABLE bilibili_hot_videos (
                     timestamp BIGINT NOT NULL,
                     aid BIGINT NOT NULL,
                     videos INT,
@@ -65,16 +65,32 @@ def insert_bilibili_data(data, host='localhost', port=3306, user='root', passwor
                     owner_name VARCHAR(100),
                     owner_face VARCHAR(500),
                     tags TEXT,
+                    real_time_all VARCHAR(20),
+                    real_time_web VARCHAR(20),
                     formatted_time VARCHAR(30),
                     PRIMARY KEY (timestamp, aid),
                     INDEX idx_aid (aid),
                     INDEX idx_pubdate (pubdate),
                     INDEX idx_owner_mid (owner_mid),
-                    INDEX idx_stat_view (stat_view)
+                    INDEX idx_stat_view (stat_view),
+                    INDEX idx_real_time_all (real_time_all),
+                    INDEX idx_timestamp (timestamp)
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
                 """
                 cursor.execute(create_table_sql)
-                print("表 bilibili_videos 创建成功")
+                print("表 bilibili_hot_videos 创建成功")
+            else:
+                # 检查是否需要添加新字段
+                cursor.execute("SHOW COLUMNS FROM bilibili_hot_videos LIKE 'real_time_all'")
+                if not cursor.fetchone():
+                    cursor.execute("ALTER TABLE bilibili_hot_videos ADD COLUMN real_time_all VARCHAR(20) AFTER tags")
+                    print("添加字段 real_time_all 成功")
+                
+                cursor.execute("SHOW COLUMNS FROM bilibili_hot_videos LIKE 'real_time_web'")
+                if not cursor.fetchone():
+                    cursor.execute("ALTER TABLE bilibili_hot_videos ADD COLUMN real_time_web VARCHAR(20) AFTER real_time_all")
+                    cursor.execute("ALTER TABLE bilibili_hot_videos ADD INDEX idx_real_time_all (real_time_all)")
+                    print("添加字段 real_time_web 成功")
             
             # 获取全局timestamp和formatted_time
             global_timestamp = data.get('timestamp')
@@ -85,19 +101,20 @@ def insert_bilibili_data(data, host='localhost', port=3306, user='root', passwor
                 print("没有视频数据需要插入")
                 return False
             
-            # 插入数据 - 修正：包含所有字段，包括tags
+            # 插入数据 - 添加实时在线人数字段
             insert_sql = """
-            INSERT INTO bilibili_videos (
+            INSERT INTO bilibili_hot_videos (
                 timestamp, aid, videos, tid, tname, copyright, pic, title, pubdate, ctime,
                 `desc`, state, duration, tnamev2, pid_name_v2, short_link_v2, dynamic,
                 stat_view, stat_danmaku, stat_reply, stat_favorite, stat_coin, stat_share,
                 stat_now_rank, stat_his_rank, stat_like, stat_dislike, stat_vt, stat_vv,
-                stat_fav_g, stat_like_g, owner_mid, owner_name, owner_face, tags, formatted_time
+                stat_fav_g, stat_like_g, owner_mid, owner_name, owner_face, tags, 
+                real_time_all, real_time_web, formatted_time
             ) VALUES (
                 %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
                 %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
                 %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
-                %s, %s, %s, %s, %s, %s
+                %s, %s, %s, %s, %s, %s, %s, %s
             )
             """
             
@@ -149,7 +166,9 @@ def insert_bilibili_data(data, host='localhost', port=3306, user='root', passwor
                         video.get('owner_mid'),
                         video.get('owner_name'),
                         video.get('owner_face'),
-                        tags_value,  # 添加了tags字段
+                        tags_value,
+                        video.get('real_time_all', '0'),  # 新增：实时总在线人数
+                        video.get('real_time_web', '0'),  # 新增：实时网页端在线人数
                         video_formatted_time
                     )
                     

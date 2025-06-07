@@ -108,11 +108,68 @@ async def add_tags(videos_list: List[Dict]):
     tasks = [fetch_tags_for_video(i, d) for i, d in enumerate(videos_list)]
     await asyncio.gather(*tasks)
     
-def process_json_data(data:List[Dict])->List[Dict]:
+    
+async def fetch_online_count(session: aiohttp.ClientSession, bvid: str, cid: str, retries: int = RETRY_ATTEMPTS) -> Dict[str, str]:
+    """
+    异步获取视频实时在线人数
+    """
+    url = "https://api.bilibili.com/x/player/online/total"
+    params = {"bvid": bvid, "cid": cid}
+    
+    for attempt in range(retries):
+        try:
+            async with session.get(url, params=params, headers=headers, timeout=TIMEOUT) as response:
+                if response.status == 200:
+                    data = await response.json()
+                    if data.get("code") == 0 and "data" in data:
+                        return {
+                            "real_time_all": data["data"].get("total", "0"),
+                            "real_time_web": data["data"].get("count", "0")
+                        }
+                    else:
+                        logger.error(f"Failed to get online count for bvid {bvid}, cid {cid}")
+                        return {"real_time_all": "0", "real_time_web": "0"}
+                else:
+                    logger.warning(f"Online count fetch for bvid {bvid} attempt {attempt + 1} failed with status {response.status}")
+        except aiohttp.ClientError as e:
+            logger.warning(f"Online count fetch for bvid {bvid} attempt {attempt + 1} error: {e}")
+        await asyncio.sleep(REQUEST_INTERVAL)
+    
+    logger.error(f"Online count fetch for bvid {bvid} failed after {retries} attempts")
+    return {"real_time_all": "0", "real_time_web": "0"}
+
+
+async def add_real_time_people(videos_list: List[Dict]):
+    """
+    为视频列表添加实时在线人数信息
+    """
+    semaphore = asyncio.Semaphore(MAX_CONCURRENT)  # 限制最大并发数
+
+    async def fetch_online_for_video(i: int, d: Dict):
+        async with semaphore:
+            async with aiohttp.ClientSession() as session:
+                bvid = d.get("bvid", "")
+                cid = d.get("cid", "")
+                
+                if not bvid or not cid:
+                    logger.warning(f"Missing bvid or cid for video {i+1}")
+                    d["real_time_all"] = "0"
+                    d["real_time_web"] = "0"
+                    return
+                
+                online_data = await fetch_online_count(session, bvid, str(cid))
+                d.update(online_data)
+                logger.info(f"Online count {i+1}-->successful")
+                await asyncio.sleep(REQUEST_INTERVAL)  # 控制请求速率
+
+    tasks = [fetch_online_for_video(i, d) for i, d in enumerate(videos_list)]
+    await asyncio.gather(*tasks)
+    
+def process_json_data(data: List[Dict]) -> List[Dict]:
     keys_to_extract = [
         'aid', 'videos', 'tid', 'tname', 'copyright', 'pic', 'title', 'pubdate',
         'ctime', 'desc', 'state', 'duration', 'mission_id', 'pub_location',
-        'tnamev2', 'pid_name_v2', 'short_link_v2', 'dynamic'
+        'tnamev2', 'pid_name_v2', 'short_link_v2', 'dynamic', 'bvid', 'cid'  # 添加 bvid 和 cid
     ]
     stat_keys = [
         'view', 'danmaku', 'reply', 'favorite', 'coin', 'share', 
@@ -132,6 +189,13 @@ def process_json_data(data:List[Dict])->List[Dict]:
         result['owner_face'] = data['owner']['face']
     if 'tags' in data:
         result['tags'] = ','.join(data['tags'])
+    
+    # 添加实时在线人数
+    if 'real_time_all' in data:
+        result['real_time_all'] = data['real_time_all']
+    if 'real_time_web' in data:
+        result['real_time_web'] = data['real_time_web']
+    
     return result
 
 def process_data(data:List[Dict]) -> List[Dict]:
@@ -151,6 +215,7 @@ async def record():
     
     videos_list = await fetch_all_pages(total_items=500, ps=50)
     await add_tags(videos_list)
+    await add_real_time_people(videos_list)  # 添加这一行
     videos_list = process_data(videos_list)
     
     hot_videos_dict["data"] = videos_list
