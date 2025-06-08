@@ -20,9 +20,10 @@
             <span class="video-tname">{{ item.tname }}</span>
           </div>
           <div class="video-stats">
-            <span>播放：{{ formatNumber(item.stat_view) }}</span>
-            <span>点赞：{{ formatNumber(item.stat_like) }}</span>
-            <span>发布时间：{{ formatTime(item.pubdate) }}</span>
+            <span class="stat-item"><PlayIcon class="stat-icon" />{{ formatNumber(item.stat_view) }}</span>
+            <span class="stat-item"><LikeIcon class="stat-icon" />{{ formatNumber(item.stat_like) }}</span>
+            <span class="stat-item"><CommentIcon class="stat-icon" />{{ formatNumber(item.stat_reply) }}</span>
+            <span class="stat-item"><TimeIcon class="stat-icon" />{{ formatTime(item.pubdate) }}</span>
           </div>
         </div>
       </div>
@@ -38,6 +39,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import axios from 'axios';
+import { Play as PlayIcon, ThumbsUp as LikeIcon, MessageCircle as CommentIcon, Clock as TimeIcon } from 'lucide-vue-next';
 
 const videos = ref([]);
 const pageSize = 48;
@@ -105,10 +107,22 @@ onMounted(async () => {
   padding: 1rem;
 }
 .video-title {
-  font-size: 1.1rem;
-  font-weight: 600;
+  font-size: 1.08rem;
+  font-family: 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', Arial, sans-serif;
+  font-weight: 500;
   margin-bottom: 0.5rem;
-  line-height: 1.4;
+  line-height: 1.5;
+  color: var(--foreground, #222);
+  transition: color 0.2s;
+}
+.video-title a {
+  text-decoration: none;
+  color: inherit;
+  transition: color 0.2s;
+}
+.video-title a:hover {
+  text-decoration: none;
+  color: var(--primary, #e91e63);
 }
 .video-meta {
   display: flex;
@@ -140,6 +154,18 @@ onMounted(async () => {
   color: var(--muted-foreground);
   display: flex;
   gap: 1.2rem;
+  flex-wrap: wrap;
+}
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+.stat-icon {
+  width: 1.1em;
+  height: 1.1em;
+  margin-right: 0.1em;
+  color: var(--muted-foreground);
 }
 .pagination {
   display: flex;
@@ -162,5 +188,10 @@ onMounted(async () => {
   background: var(--muted);
   color: var(--muted-foreground);
   cursor: not-allowed;
+}
+@media (prefers-color-scheme: dark) {
+  .video-title {
+    color: #f3f3f3;
+  }
 }
 </style> 
