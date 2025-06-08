@@ -1,7 +1,8 @@
+//顶端页面
 <template>
   <header class="header">
     <div class="logo-container">
-      <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' fill='%23FB7299'/%3E%3Ctext x='20' y='25' text-anchor='middle' fill='white' font-size='10'%3ELogo%3C/text%3E%3C/svg%3E" alt="Logo" class="logo" />
+      <img src="../assets/logo.png" alt= "Logo" class="logo" />
       <h1 class="site-title">DataBili</h1>
     </div>
     <div class="search-container">
@@ -43,7 +44,7 @@
         </div>
       </div>
       <div class="user-profile" @click="toggleUserMenu">
-        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'%3E%3Ccircle cx='20' cy='20' r='20' fill='%23FB7299'/%3E%3Ctext x='20' y='25' text-anchor='middle' fill='white' font-size='12'%3E头%3C/text%3E%3C/svg%3E" alt="User Avatar" class="avatar" />
+        <img src="../assets/2233.png" alt="User Avatar" class="avatar" />
         <div class="user-menu" v-if="isUserMenuOpen">
           <ul>
             <li @click="navigateTo('/profile')"><UserIcon /> 个人资料</li>
@@ -52,12 +53,16 @@
           </ul>
         </div>
       </div>
+      <button class="collapse-button" @click="toggleSidebar">
+        <ChevronLeft v-if="!isSidebarCollapsed.value" :class="{ 'dark-icon': isDark }" />
+        <ChevronRight v-else :class="{ 'dark-icon': isDark }" />
+      </button>
     </div>
   </header>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAppStore } from '../store';
 import { 
@@ -67,7 +72,9 @@ import {
   Settings as SettingsIcon, 
   LogOut as LogOutIcon,
   Sun as SunIcon,
-  Moon as MoonIcon
+  Moon as MoonIcon,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-vue-next';
 
 const router = useRouter();
@@ -75,10 +82,12 @@ const appStore = useAppStore();
 
 const isUserMenuOpen = ref(false);
 const showNotifications = ref(false);
+const isDark = ref(false);
 
 const isDarkMode = computed(() => appStore.isDarkMode);
 const notifications = computed(() => appStore.notifications);
 const unreadNotificationsCount = computed(() => appStore.unreadNotificationsCount);
+const isSidebarCollapsed = computed(() => appStore.isSidebarCollapsed);
 
 const toggleDarkMode = () => {
   appStore.toggleDarkMode();
@@ -117,6 +126,17 @@ const markAllAsRead = () => {
     appStore.markNotificationAsRead(notification.id);
   });
 };
+
+const toggleSidebar = () => {
+  appStore.toggleSidebar();
+};
+
+onMounted(() => {
+  isDark.value = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+    isDark.value = e.matches;
+  });
+});
 </script>
 
 <style scoped>
@@ -348,5 +368,47 @@ const markAllAsRead = () => {
   .search-container {
     display: none;
   }
+}
+
+.sidebar {
+  width: 200px;
+  min-width: 60px;
+  max-width: 240px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.sidebar.collapsed {
+  width: 60px;
+}
+
+.collapse-button {
+  background: none;
+  border: none;
+  color: var(--foreground);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+}
+
+.collapse-button:hover {
+  background-color: var(--muted);
+}
+
+.collapse-button svg {
+  color: #222; /* 默认浅色 */
+  transition: color 0.3s;
+}
+
+.dark-icon {
+  color: #fff !important; /* 深色模式下变白 */
+}
+
+body.dark .collapse-button svg {
+  color: #fff;
 }
 </style>

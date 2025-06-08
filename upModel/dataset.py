@@ -2,7 +2,11 @@ import pymysql
 import pandas as pd
 import numpy as np
 from sklearn.preprocessing import StandardScaler
+import warnings
 
+
+#忽略所有警告
+warnings.filterwarnings("ignore", category=UserWarning)
 
 # 数据库连接配置
 

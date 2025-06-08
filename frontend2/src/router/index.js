@@ -54,6 +54,21 @@ const router = createRouter({
       name: "hot-videos",
       component: () => import("../views/HotVideos.vue"),
     },
+    {
+      path: "/user-tracking",
+      name: "user-tracking",
+      component: () => import("../views/UserTracking.vue"),
+    },
+    {
+      path: "/up-select",
+      name: "up-select",
+      component: () => import("../views/UpSelect.vue"),
+    },
+    {
+      path: '/up-analysis',
+      name: 'UpAnalysis',
+      component: () => import('@/views/UpAnalysis.vue')
+    },
   ],
 })
 

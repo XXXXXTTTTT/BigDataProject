@@ -4,6 +4,7 @@ import json
 import pymysql
 from bilibili_api import user, video, Credential, request_settings
 from bilibili_api.exceptions import ApiException
+import tqdm
 
 
 # ============ 全局配置 ==============
@@ -40,22 +41,22 @@ credential = Credential(sessdata=SESSDATA, bili_jct=BILI_JCT) if USE_CREDENTIAL 
 # 数据库配置
 
 #远端
-# db_config = {
-#     "host": "114.116.251.42",
-#     "user": "remote",
-#     "password": "123456",
-#     "database": "bilibili",
-#     "port": 3306
-# }
-
-#本地
 db_config = {
-    "host": "localhost",
-    "user": "root",
+    "host": "114.116.251.42",
+    "user": "remote",
     "password": "123456",
-    "database": "man",
+    "database": "bilibili",
     "port": 3306
 }
+
+#本地
+# db_config = {
+#     "host": "localhost",
+#     "user": "root",
+#     "password": "123456",
+#     "database": "man",
+#     "port": 3306
+# }
 
 # 数据库插入函数
 def insert_into_mysql(data: dict):

@@ -10,7 +10,11 @@ import mplcursors
 import requests
 from io import BytesIO
 from PIL import Image
+import sys
+import json
 import concurrent.futures
+import argparse
+import pymysql
 
 """
 预测新数据的聚类标签
@@ -24,28 +28,79 @@ import concurrent.futures
 """
 
     
-def predict_new_data(new_data, model_path='kmeans_model.pkl', scaler_path='scaler.pkl'):
 
-    
-    # 加载保存的 KMeans 模型
+
+def predict_new_data(uid, new_data, model_path='kmeans_model.pkl', scaler_path='scaler.pkl'):
+    # 加载模型和标准化器
     kmeans = joblib.load(model_path)
     scaler = joblib.load(scaler_path)
-    
-    # 1. 预处理新数据：标准化
-    
-    if isinstance(new_data, dict):  # 如果是字典类型，转换为 DataFrame
-       new_data = pd.DataFrame([new_data])  # 每个 UP 主数据为一行
 
-    # 提取并计算特征
+    # 如果是 dict，则转为 DataFrame
+    if isinstance(new_data, dict):
+        new_data = pd.DataFrame([new_data])
+
+    # 提取特征
     features = compute_features(new_data)
     features = features[FEATURES]
-    # 使用训练时的 scaler 进行标准化
+
+    # 标准化
     X_scaled = scaler.transform(features)
 
-    # 聚类预测
-    cluster_label = kmeans.predict(X_scaled)
-    
+    # 预测聚类标签
+    cluster_label = int(kmeans.predict(X_scaled)[0])  # 转 int，避免 NumPy 类型报错
+
+    # 取出用于插入的原始特征值（注意是未标准化前的）
+    log_followers = float(features['log_followers'].values[0])
+    log_view = float(features['log_view'].values[0])
+    like_rate = float(features['like_rate'].values[0])
+    engagement_rate = float(features['engagement_rate'].values[0])
+    duration_engagement = float(features['duration_engagement'].values[0])
+
+    # 插入到数据库
+    try:
+        conn = pymysql.connect(
+            host='114.116.251.42',
+            user='remote',
+            password='123456',
+            database='bilibili',
+            port= 3306,
+            charset='utf8mb4'
+        )
+        
+        
+        
+        
+        cursor = conn.cursor()
+
+        sql = """
+        INSERT INTO up_analysis (
+            uid, log_followers, log_view, like_rate,
+            engagement_rate, duration_engagement, cluster_label
+        ) VALUES (%s, %s, %s, %s, %s, %s, %s)
+        ON DUPLICATE KEY UPDATE
+            log_followers = VALUES(log_followers),
+            log_view = VALUES(log_view),
+            like_rate = VALUES(like_rate),
+            engagement_rate = VALUES(engagement_rate),
+            duration_engagement = VALUES(duration_engagement),
+            cluster_label = VALUES(cluster_label),
+            updated_at = CURRENT_TIMESTAMP;
+        """
+
+        cursor.execute(sql, (
+            uid, log_followers, log_view, like_rate,
+            engagement_rate, duration_engagement, cluster_label
+        ))
+        conn.commit()
+
+    except Exception as e:
+        print(f"数据库插入失败：{e}")
+    finally:
+        cursor.close()
+        conn.close()
+
     return cluster_label
+
 
 #根据UID进行预测
 def predict_new_data_via_uid(uid, model_path='kmeans_model.pkl'):
@@ -53,7 +108,7 @@ def predict_new_data_via_uid(uid, model_path='kmeans_model.pkl'):
     data = get_data_from_db(uid=uid)
         
     
-    return predict_new_data(data)
+    return predict_new_data(uid, data, model_path)
 
 # 获取所有UP主的数据并进行预测
 def predict_all_up(model_path='kmeans_model.pkl'):
@@ -76,7 +131,7 @@ def predict_all_up(model_path='kmeans_model.pkl'):
         # data = data[NUMERCIAL_FEATURES]    
         # new_data_scaled = compute_features(data) 
         # X_scaled, scaler = norm_data(new_data_scaled)
-        cluster_label = predict_new_data(data, model_path=model_path)
+        cluster_label = predict_new_data(uid, data, model_path=model_path)
         
         # 获取UP主的名字和头像URL
         df = get_showInfo_from_db(uid)
@@ -86,7 +141,7 @@ def predict_all_up(model_path='kmeans_model.pkl'):
             'uid': uid,
             'name': df['name'],
             'avatar_url': df['avatar_url'],
-            'cluster_label': cluster_label[0]  # 预测标签
+            'cluster_label': cluster_label  # 预测标签
         })
     
     return results
@@ -176,39 +231,32 @@ def on_click(sel, hover_info, x_coords, y_coords, avatar_images):
 
 #测试脚本
 if __name__ == '__main__':
+    predict_all_up()
     
-    new_sample = {
-    "uid": 400482416,
-    "followers": 32, #粉丝数
-    "total_videos": 2, #投稿视频数
-    "total_view": 15954, #总播放量
-    "total_like": 101, #总点赞
-    "total_coin": 25, #总硬币
-    "total_favorite": 30, #所有收藏
-    "total_share": 42, #所有分享
-    "total_comment": 37, #评论数
-    "total_danmaku": 41, #弹幕
-    "total_duration": 5311, #视频总时长
-    "total_chargers": 0, #充电数
-    "total_videos_count": 2, #总水平数
-    "errors": []
-    }
-    
-    # cluster = predict_new_data(new_sample) 
-    
-    # cluster = predict_new_data_via_uid(1318997) #0 大V
-    
-    # cluster = predict_new_data_via_uid(171844704) #0 粘
-    
-    # cluster = predict_new_data_via_uid(502937705) 
-       
-    # cluster = predict_new_data_via_uid(1453964802)
-    
-    # print(f"新数据的聚类标签是: {cluster}")
-    
-    # 获取所有UP主的聚类结果
-    results = predict_all_up(model_path='kmeans_model.pkl')
-    
-    # 可视化聚类结果
-    visualize_up_clusters(results)
+#后端用
+# if __name__ == '__main__':
+#     parser = argparse.ArgumentParser()
+#     parser.add_argument('--uid', type=int, help='UP主uid')
+#     args = parser.parse_args()
+
+#     if args.uid:
+#         # 只预测单个up主
+#         results = predict_new_data_via_uid(args.uid, model_path='kmeans_model.pkl')
+#         # 取第一个标签并转为int
+#         label = int(results[0]) if hasattr(results, '__getitem__') else int(results)
+#         print(json.dumps({'uid': args.uid, 'cluster_label': label}, ensure_ascii=False))
+#     else:
+#         # 全量预测
+#         results = predict_all_up(model_path='kmeans_model.pkl')
+#         # 递归转为纯Python类型
+#         def to_py(obj):
+#             if isinstance(obj, dict):
+#                 return {k: to_py(v) for k, v in obj.items()}
+#             elif isinstance(obj, list):
+#                 return [to_py(i) for i in obj]
+#             elif hasattr(obj, 'item'):
+#                 return obj.item()
+#             else:
+#                 return obj
+#         print(json.dumps(to_py(results), ensure_ascii=False))
 

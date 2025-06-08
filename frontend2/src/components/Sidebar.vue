@@ -1,10 +1,10 @@
 <template>
   <aside class="sidebar" :class="{ 'collapsed': isSidebarCollapsed }">
-    <button class="collapse-button" @click="toggleSidebar">
-      <ChevronLeftIcon v-if="!isSidebarCollapsed" />
-      <ChevronRightIcon v-else />
-    </button>
     <nav class="sidebar-nav">
+      <button class="collapse-button" @click="toggleSidebar">
+        <ChevronLeftIcon v-if="!isSidebarCollapsed" />
+        <ChevronRightIcon v-else />
+      </button>
       <ul>
         <li 
           v-for="item in menuItems" 
@@ -32,6 +32,7 @@ import {
   FileText as FileTextIcon,
   Video as VideoIcon,
   Users as UsersIcon,
+  Search as SearchIcon,
   Settings as SettingsIcon,
   ChevronLeft as ChevronLeftIcon,
   ChevronRight as ChevronRightIcon
@@ -42,14 +43,17 @@ const route = useRoute();
 const appStore = useAppStore();
 
 const menuItems = [
-  { name: '仪表盘', path: '/', icon: HomeIcon },
+  { name: '首页', path: '/', icon: HomeIcon },
   { name: '分析', path: '/analytics', icon: BarChartIcon },
   { name: '数据源', path: '/data-sources', icon: DatabaseIcon },
   { name: '表格', path: '/tables', icon: TableIcon },
   { name: '报表', path: '/reports', icon: FileTextIcon },
   { name: '媒体', path: '/media', icon: VideoIcon },
   { name: '热门视频', path: '/hot-videos', icon: VideoIcon },
+  { name: 'Up主查询', path: '/up-select', icon: UsersIcon },
+  { name: 'Up主分析', path: '/up-analysis', icon: UsersIcon },
   { name: '用户', path: '/users', icon: UsersIcon },
+  { name: '用户追踪', path: '/user-tracking', icon: SearchIcon },
   { name: '设置', path: '/settings', icon: SettingsIcon }
 ];
 
@@ -60,18 +64,16 @@ const toggleSidebar = () => {
   appStore.toggleSidebar();
 };
 
-const navigateTo = (path) => {
+const handleNavigation = (path) => {
   router.push(path);
 };
-
-const handleNavigation = (path) => {
-  navigateTo(path);
-}
 </script>
 
 <style scoped>
 .sidebar {
-  width: var(--sidebar-width);
+  width: var(--sidebar-width, 200px);
+  min-width: var(--sidebar-collapsed-width, 60px);
+  max-width: 240px;
   background-color: var(--card);
   border-right: 1px solid var(--border);
   transition: width 0.3s ease;
@@ -81,32 +83,34 @@ const handleNavigation = (path) => {
 }
 
 .sidebar.collapsed {
-  width: var(--sidebar-collapsed-width);
+  width: var(--sidebar-collapsed-width, 60px);
 }
 
 .collapse-button {
-  position: absolute;
-  top: 1rem;
-  right: -12px;
-  width: 24px;
-  height: 24px;
-  background-color: var(--primary);
+  width: 100%;
   border: none;
-  border-radius: 50%;
+  background: none;
+  cursor: pointer;
+  padding: 12px 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
-  cursor: pointer;
-  z-index: 10;
+  color: var(--muted-foreground);
 }
 
 .sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
   padding: 1.5rem 0;
 }
 
 .sidebar-nav ul {
   list-style: none;
+  padding: 0;
+  margin: 0;
+  flex: 1;
+  overflow-x: hidden;
 }
 
 .sidebar-nav li {
@@ -117,6 +121,7 @@ const handleNavigation = (path) => {
   cursor: pointer;
   transition: background-color 0.2s;
   color: var(--muted-foreground);
+  white-space: nowrap;
 }
 
 .sidebar-nav li.active {
