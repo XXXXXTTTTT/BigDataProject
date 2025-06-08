@@ -528,7 +528,8 @@ const renderAnalysisChart = () => {
     { key: 'stat_favorite', name: '收藏数', color: '#F59E0B' },
     { key: 'stat_coin', name: '投币数', color: '#8B5CF6' },
     { key: 'stat_share', name: '分享数', color: '#EF4444' },
-    { key: 'stat_like', name: '点赞数', color: '#06B6D4' }
+    { key: 'stat_like', name: '点赞数', color: '#06B6D4' },
+    { key: 'real_time_all', name: '在线人数', color: '#06B3D4' }
   ];
   
   // 创建系列数据
@@ -664,6 +665,7 @@ const renderAnalysisChart = () => {
       if (metric) {
         const metricData = data.map(item => item[metric.key]).filter(val => val !== null && val !== undefined);
         const metricRange = calculateDynamicYAxisRange(metricData);
+        console.log(metricData);
         
         analysisChartInstance.setOption({
           yAxis: {

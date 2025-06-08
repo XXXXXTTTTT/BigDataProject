@@ -346,20 +346,32 @@ router.get('/analyze/video-info', async (req, res) => {
   }
   try {
     const [rows] = await pool.query(`
-      SELECT
-          timestamp,
-          FROM_UNIXTIME(timestamp) as time_formatted,
-          stat_view,
-          stat_danmaku,
-          stat_reply,
-          stat_favorite,
-          stat_coin,
-          stat_share,
-          stat_like,
-          stat_view - LAG(stat_view) OVER (ORDER BY timestamp) as view_growth,
-          stat_danmaku - LAG(stat_danmaku) OVER (ORDER BY timestamp) as danmaku_growth,
-          stat_reply - LAG(stat_reply) OVER (ORDER BY timestamp) as reply_growth,
-          stat_like - LAG(stat_like) OVER (ORDER BY timestamp) as like_growth
+    SELECT
+        timestamp,
+        FROM_UNIXTIME(timestamp) as time_formatted,
+        stat_view,
+        stat_danmaku,
+        stat_reply,
+        stat_favorite,
+        stat_coin,
+        stat_share,
+        stat_like,
+        -- 处理 real_time_all 字段，转换为 FLOAT 类型
+        CAST(
+            CASE 
+                WHEN real_time_all LIKE '%万+%' THEN 
+                    CAST(REPLACE(REPLACE(real_time_all, '万+', ''), '+', '') AS DECIMAL(10,1)) * 10000
+                WHEN real_time_all LIKE '%+%' THEN 
+                    CAST(REPLACE(real_time_all, '+', '') AS DECIMAL(10,0))
+                ELSE 
+                    CAST(real_time_all AS DECIMAL(10,0))
+            END AS FLOAT
+        ) as real_time_all,
+        -- 计算与上一个时间点的增量
+        stat_view - LAG(stat_view) OVER (ORDER BY timestamp) as view_growth,
+        stat_danmaku - LAG(stat_danmaku) OVER (ORDER BY timestamp) as danmaku_growth,
+        stat_reply - LAG(stat_reply) OVER (ORDER BY timestamp) as reply_growth,
+        stat_like - LAG(stat_like) OVER (ORDER BY timestamp) as like_growth
       FROM bilibili_hot_videos_server 
       WHERE aid = ?
       ORDER BY timestamp;
