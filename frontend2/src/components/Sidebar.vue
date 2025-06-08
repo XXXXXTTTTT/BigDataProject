@@ -66,13 +66,16 @@ const toggleSidebar = () => {
 
 const handleNavigation = (path) => {
   router.push(path);
+  if (!isSidebarCollapsed.value) {
+    appStore.isSidebarCollapsed = true;
+  }
 };
 </script>
 
 <style scoped>
 .sidebar {
+  min-width: 48px;
   width: var(--sidebar-width, 200px);
-  min-width: var(--sidebar-collapsed-width, 60px);
   max-width: 240px;
   background-color: var(--card);
   border-right: 1px solid var(--border);
@@ -82,7 +85,8 @@ const handleNavigation = (path) => {
   top: 65px;
   height: calc(100vh - 65px);
   z-index: 100;
-  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
 }
 
 .sidebar.collapsed {
@@ -105,15 +109,18 @@ const handleNavigation = (path) => {
 .sidebar-nav {
   display: flex;
   flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
   height: 100%;
-  padding: 1.5rem 0;
 }
 
 .sidebar-nav ul {
   list-style: none;
   padding: 0;
   margin: 0;
-  flex: 1;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
   overflow-x: hidden;
 }
 

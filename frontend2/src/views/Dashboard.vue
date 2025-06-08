@@ -28,7 +28,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, onActivated } from 'vue';
 import axios from 'axios';
 
 const summary = ref({});
@@ -39,7 +39,7 @@ const clusterColors = { 0: '#e74c3c', 1: '#27ae60', 2: '#2980b9' };
 
 const formatNumber = n => n > 10000 ? (n/10000).toFixed(1) + '万' : n;
 
-onMounted(async () => {
+async function fetchSummary() {
   const res = await axios.get('http://127.0.0.1:3000/api/up-profile/summary');
   if(res.data && res.data.data) {
     summary.value = res.data.data;
@@ -62,7 +62,10 @@ onMounted(async () => {
       count: c.count
     }));
   }
-});
+}
+
+onMounted(fetchSummary);
+onActivated(fetchSummary);
 </script>
 
 <style scoped>
