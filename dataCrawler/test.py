@@ -1,30 +1,22 @@
-import time
-from bilibili_api import user
-import asyncio
-import json
-from typing import List, Dict
-import asyncio
-from bilibili_api import video, Credential
-from typing import List, Dict, Union
+import requests
 
-async def fetch_all_videos(u:user.User)->List[str]:
-    page = 1
-    videos = []
-    while True:
-        result = await u.get_videos(pn=page, ps=50, order=user.VideoOrder.PUBDATE)
-        video_list = result.get('list', {}).get('vlist', [])
-        if not video_list:
-            break
-        videos.extend(video_list)
-        page += 1
+# API URL
+url = "https://api.aicu.cc/api/v3/search/getreply"
+
+# 请求参数
+params = {
+    'uid': '400482416',
+    'pn': '1',
+    'ps': '100',
+    'mode': '0',
+    'keyword': ''
+}
+
+try:
+    response = requests.get(url, params=params)
+    response.raise_for_status()
+    print("状态码:", response.status_code)
+    print("响应内容:", response.json())
     
-    print(json.dumps(videos,indent=2))
-    bvids = []
-    for v in videos:
-        bv = v.get("bvid","")
-        bvids.append(bv)
-        
-    return bvids
-
-u = user.User(uid="546195")
-asyncio.run(fetch_all_videos(u))
+except requests.exceptions.RequestException as e:
+    print(f"请求失败: {e}")

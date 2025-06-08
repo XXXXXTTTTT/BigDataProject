@@ -32,6 +32,7 @@ import {
   FileText as FileTextIcon,
   Video as VideoIcon,
   Users as UsersIcon,
+  Search as SearchIcon,
   Settings as SettingsIcon,
   ChevronLeft as ChevronLeftIcon,
   ChevronRight as ChevronRightIcon
@@ -50,6 +51,7 @@ const menuItems = [
   { name: '媒体', path: '/media', icon: VideoIcon },
   { name: '热门视频', path: '/hot-videos', icon: VideoIcon },
   { name: '用户', path: '/users', icon: UsersIcon },
+  { name: '用户追踪', path: '/user-tracking', icon: SearchIcon },
   { name: '设置', path: '/settings', icon: SettingsIcon }
 ];
 
@@ -60,30 +62,26 @@ const toggleSidebar = () => {
   appStore.toggleSidebar();
 };
 
-const navigateTo = (path) => {
+const handleNavigation = (path) => {
   router.push(path);
 };
-
-const handleNavigation = (path) => {
-  navigateTo(path);
-}
 </script>
 
 <style scoped>
 .sidebar {
-  width: 200px;
-  min-width: 60px;
+  width: var(--sidebar-width, 200px);
+  min-width: var(--sidebar-collapsed-width, 60px);
   max-width: 240px;
-  overflow-x: hidden;
-  overflow-y: auto;
   background-color: var(--card);
   border-right: 1px solid var(--border);
   transition: width 0.3s ease;
   position: relative;
+  overflow-y: auto;
+  height: 100%;
 }
 
 .sidebar.collapsed {
-  width: var(--sidebar-collapsed-width);
+  width: var(--sidebar-collapsed-width, 60px);
 }
 
 .collapse-button {
@@ -92,12 +90,17 @@ const handleNavigation = (path) => {
   background: none;
   cursor: pointer;
   padding: 12px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted-foreground);
 }
 
 .sidebar-nav {
   display: flex;
   flex-direction: column;
   height: 100%;
+  padding: 1.5rem 0;
 }
 
 .sidebar-nav ul {
@@ -116,6 +119,7 @@ const handleNavigation = (path) => {
   cursor: pointer;
   transition: background-color 0.2s;
   color: var(--muted-foreground);
+  white-space: nowrap;
 }
 
 .sidebar-nav li.active {

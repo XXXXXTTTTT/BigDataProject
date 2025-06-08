@@ -54,6 +54,11 @@ const router = createRouter({
       name: "hot-videos",
       component: () => import("../views/HotVideos.vue"),
     },
+    {
+      path: "/user-tracking",
+      name: "user-tracking",
+      component: () => import("../views/UserTracking.vue"),
+    },
   ],
 })
 

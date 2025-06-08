@@ -54,7 +54,7 @@
         </div>
       </div>
       <button class="collapse-button" @click="toggleSidebar">
-        <ChevronLeft v-if="!isSidebarCollapsed" :class="{ 'dark-icon': isDark }" />
+        <ChevronLeft v-if="!isSidebarCollapsed.value" :class="{ 'dark-icon': isDark }" />
         <ChevronRight v-else :class="{ 'dark-icon': isDark }" />
       </button>
     </div>
@@ -87,6 +87,7 @@ const isDark = ref(false);
 const isDarkMode = computed(() => appStore.isDarkMode);
 const notifications = computed(() => appStore.notifications);
 const unreadNotificationsCount = computed(() => appStore.unreadNotificationsCount);
+const isSidebarCollapsed = computed(() => appStore.isSidebarCollapsed);
 
 const toggleDarkMode = () => {
   appStore.toggleDarkMode();
@@ -127,7 +128,7 @@ const markAllAsRead = () => {
 };
 
 const toggleSidebar = () => {
-  // Implementation of toggleSidebar
+  appStore.toggleSidebar();
 };
 
 onMounted(() => {
