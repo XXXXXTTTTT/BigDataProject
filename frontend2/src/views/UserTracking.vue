@@ -54,6 +54,9 @@
           <h3 class="section-title">
             <ActivityIcon /> 用户活跃程度
           </h3>
+          <div class="comment-total">
+            <span>评论总数：</span><b>{{ analysisData.replies?.length || 0 }}</b>
+          </div>
           <div class="chart-wrapper">
             <Line 
               :data="activityChartData" 
@@ -61,6 +64,7 @@
               :height="120"
             />
           </div>
+
         </div>
 
         <!-- 2. 词云 -->
@@ -128,6 +132,27 @@
           </div>
         </div>
 
+        <!-- 7. 评论列表（分页） -->
+        <div class="analysis-section commentlist-section">
+          <h3 class="section-title">
+            <BarChartIcon /> 评论列表
+          </h3>
+          <div class="commentlist-wrapper">
+            <div v-if="pagedComments.length === 0" class="no-comments">暂无评论</div>
+            <div v-else>
+              <div v-for="(item, idx) in pagedComments" :key="item.timestamp + idx" class="comment-item">
+                <div class="comment-time">{{ formatTime(item.timestamp) }}</div>
+                <div class="comment-content">{{ item.comment }}</div>
+              </div>
+            </div>
+            <div v-if="totalPages > 1" class="pagination-bar">
+              <button :disabled="currentPage === 1" @click="goToPage(currentPage - 1)">上一页</button>
+              <span>第 <input type="number" v-model.number="inputPage" min="1" :max="totalPages" @keyup.enter="jumpToPage" style="width: 3em; text-align: center;"/> / {{ totalPages }} 页</span>
+              <button :disabled="currentPage === totalPages" @click="goToPage(currentPage + 1)">下一页</button>
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
 
@@ -143,7 +168,7 @@
 </template>
 
 <script setup>
-import { ref, computed, nextTick, onMounted, onUnmounted } from 'vue';
+import { ref, computed, nextTick, onMounted, onUnmounted, watch } from 'vue';
 import { Line, Bar } from 'vue-chartjs';
 import {
   Chart as ChartJS,
@@ -456,6 +481,49 @@ const renderEchartsWordCloud = () => {
   window.addEventListener('resize', () => wordcloudInstance && wordcloudInstance.resize());
 };
 
+// 评论分页相关
+const currentPage = ref(1);
+const inputPage = ref(1);
+const pageSize = 50;
+const pagedComments = computed(() => {
+  if (!analysisData.value?.replies) return [];
+  const start = (currentPage.value - 1) * pageSize;
+  return analysisData.value.replies.slice(start, start + pageSize);
+});
+const totalPages = computed(() => {
+  if (!analysisData.value?.replies) return 1;
+  return Math.ceil(analysisData.value.replies.length / pageSize) || 1;
+});
+function goToPage(page) {
+  if (page < 1 || page > totalPages.value) return;
+  currentPage.value = page;
+  inputPage.value = page;
+  nextTick(() => {
+    const el = document.querySelector('.commentlist-section');
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
+}
+function jumpToPage() {
+  goToPage(inputPage.value);
+}
+watch(analysisData, () => {
+  currentPage.value = 1;
+  inputPage.value = 1;
+});
+function formatTime(ts) {
+  // 兼容秒和毫秒
+  if (typeof ts === 'string') ts = Number(ts);
+  if (ts < 1e11) ts = ts * 1000; // 10位时间戳，转为毫秒
+  const d = new Date(ts);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  const h = String(d.getHours()).padStart(2, '0');
+  const min = String(d.getMinutes()).padStart(2, '0');
+  const s = String(d.getSeconds()).padStart(2, '0');
+  return `${y}-${m}-${day} ${h}:${min}:${s}`;
+}
+
 onMounted(() => {
   // 组件挂载后的初始化
 });
@@ -755,6 +823,97 @@ onUnmounted(() => {
 
 .empty-state p {
   font-size: 1.1rem;
+}
+
+.comment-total {
+  text-align: right;
+  color: var(--muted-foreground);
+  font-size: 1.1rem;
+  margin-top: -1.5rem;
+  margin-bottom: 1.5rem;
+  margin-right: 0.5rem;
+}
+
+.commentlist-section {
+  position: relative;
+  background: var(--card);
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+  padding: 2rem 1rem 4.5rem 1rem;
+  margin-bottom: 3rem;
+}
+
+.commentlist-wrapper {
+  max-height: 400px;
+  overflow-y: auto;
+  padding: 0.5rem 0.5rem 2.5rem 0.5rem;
+}
+
+.comment-item {
+  border-bottom: 1px solid var(--border);
+  padding: 0.5rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.comment-time {
+  color: var(--muted-foreground);
+  font-size: 0.95rem;
+}
+
+.comment-content {
+  color: var(--foreground);
+  font-size: 1.1rem;
+  word-break: break-all;
+}
+
+.no-comments {
+  color: var(--muted-foreground);
+  text-align: center;
+  padding: 2rem 0;
+}
+
+.pagination-bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 1rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1.5rem;
+  background: rgba(255,255,255,0.85);
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  z-index: 10;
+}
+
+.pagination-bar button {
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.3rem 1.2rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.pagination-bar button:disabled {
+  background: #eee;
+  color: #aaa;
+  cursor: not-allowed;
+}
+
+.pagination-bar input[type="number"] {
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.1rem 0.3rem;
+  font-size: 1rem;
+  width: 2.5em;
 }
 
 @media (max-width: 768px) {

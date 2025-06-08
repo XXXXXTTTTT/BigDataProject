@@ -106,12 +106,13 @@ async function getAllComments(uid) {
     const allReplies = [];
     let page = 1;
     let hasMore = true;
+    const MAX_PAGES = 200; // 最多请求200页
     
     // 配置代理
     const proxyUrl = 'http://127.0.0.1:7890';
     const httpsAgent = new HttpsProxyAgent(proxyUrl);
     
-    while (hasMore) {
+    while (hasMore && page <= MAX_PAGES) {
         try {
             const url = comment_url.replace('{uid}', uid).replace('{pn}', page);
             const response = await axios.get(url, {
