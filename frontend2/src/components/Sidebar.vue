@@ -77,9 +77,12 @@ const handleNavigation = (path) => {
   background-color: var(--card);
   border-right: 1px solid var(--border);
   transition: width 0.3s ease;
-  position: relative;
+  position: fixed;
+  left: 0;
+  top: 65px;
+  height: calc(100vh - 65px);
+  z-index: 100;
   overflow-y: auto;
-  height: 100%;
 }
 
 .sidebar.collapsed {
@@ -96,6 +99,7 @@ const handleNavigation = (path) => {
   align-items: center;
   justify-content: center;
   color: var(--muted-foreground);
+  margin-top: 12px;
 }
 
 .sidebar-nav {

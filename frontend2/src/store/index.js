@@ -3,7 +3,7 @@ import { defineStore } from "pinia"
 export const useAppStore = defineStore("app", {
   state: () => ({
     isDarkMode: false,
-    isSidebarCollapsed: false,
+    isSidebarCollapsed: true,
     user: null,
     notifications: [
       { id: 1, title: "系统通知", message: "欢迎使用DataBili大数据平台", read: false, time: "2023-11-15 09:30" },
