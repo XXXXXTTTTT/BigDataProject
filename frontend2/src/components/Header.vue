@@ -5,14 +5,6 @@
       <img src="../assets/logo.png" alt= "Logo" class="logo" />
       <h1 class="site-title">DataBili</h1>
     </div>
-    <div class="search-container">
-      <div class="search-box">
-        <input type="text" placeholder="搜索数据、图表、报表..." />
-        <button class="search-button">
-          <i class="icon"><SearchIcon /></i>
-        </button>
-      </div>
-    </div>
     <div class="header-actions">
       <button class="theme-toggle" @click="toggleDarkMode">
         <SunIcon v-if="isDarkMode" />
@@ -54,8 +46,8 @@
         </div>
       </div>
       <button class="collapse-button" @click="toggleSidebar">
-        <ChevronLeft v-if="!isSidebarCollapsed.value" :class="{ 'dark-icon': isDark }" />
-        <ChevronRight v-else :class="{ 'dark-icon': isDark }" />
+        <ChevronLeft v-if="!isSidebarCollapsed" :class="{ 'dark-icon': isDarkMode }" />
+        <ChevronRight v-else :class="{ 'dark-icon': isDarkMode }" />
       </button>
     </div>
   </header>
@@ -82,12 +74,11 @@ const appStore = useAppStore();
 
 const isUserMenuOpen = ref(false);
 const showNotifications = ref(false);
-const isDark = ref(false);
 
-const isDarkMode = computed(() => appStore.isDarkMode);
 const notifications = computed(() => appStore.notifications);
 const unreadNotificationsCount = computed(() => appStore.unreadNotificationsCount);
 const isSidebarCollapsed = computed(() => appStore.isSidebarCollapsed);
+const isDarkMode = computed(() => appStore.isDarkMode);
 
 const toggleDarkMode = () => {
   appStore.toggleDarkMode();
@@ -130,13 +121,6 @@ const markAllAsRead = () => {
 const toggleSidebar = () => {
   appStore.toggleSidebar();
 };
-
-onMounted(() => {
-  isDark.value = window.matchMedia('(prefers-color-scheme: dark)').matches;
-  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
-    isDark.value = e.matches;
-  });
-});
 </script>
 
 <style scoped>
@@ -169,42 +153,6 @@ onMounted(() => {
   color: var(--primary);
 }
 
-.search-container {
-  flex: 1;
-  display: flex;
-  justify-content: center;
-  max-width: 600px;
-  margin: 0 2rem;
-}
-
-.search-box {
-  position: relative;
-  width: 100%;
-}
-
-.search-box input {
-  width: 100%;
-  padding: 0.5rem 1rem 0.5rem 2.5rem;
-  border-radius: var(--radius);
-  border: 1px solid var(--input);
-  background-color: var(--muted);
-  color: var(--foreground);
-}
-
-.search-button {
-  position: absolute;
-  left: 0.5rem;
-  top: 50%;
-  transform: translateY(-50%);
-  background: none;
-  border: none;
-  color: var(--muted-foreground);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
 .header-actions {
   display: flex;
   align-items: center;
@@ -212,7 +160,10 @@ onMounted(() => {
   margin-left: auto;
 }
 
-.theme-toggle {
+.theme-toggle,
+.collapse-button,
+.notification-icon,
+.user-profile {
   background: none;
   border: none;
   color: var(--foreground);
@@ -222,31 +173,57 @@ onMounted(() => {
   justify-content: center;
   padding: 0.5rem;
   border-radius: 50%;
-  transition: background-color 0.2s;
+  width: 2.5rem;
+  height: 2.5rem;
+  min-width: 2.5rem;
+  min-height: 2.5rem;
+  box-sizing: border-box;
+  transition: background-color 0.2s, color 0.2s;
 }
-
-.theme-toggle:hover {
+.theme-toggle:hover,
+.collapse-button:hover,
+.notification-icon:hover,
+.user-profile:hover {
   background-color: var(--muted);
+}
+.theme-toggle svg,
+.collapse-button svg,
+.notification-icon svg {
+  width: 1.5rem;
+  height: 1.5rem;
+  display: block;
+}
+.avatar {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--primary);
 }
 
 .notification-icon {
   position: relative;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .notification-badge {
   position: absolute;
-  top: -5px;
-  right: -5px;
+  top: 2px;
+  right: 2px;
   background-color: var(--primary);
   color: white;
   border-radius: 50%;
-  width: 18px;
-  height: 18px;
+  width: 1.1em;
+  height: 1.1em;
   font-size: 0.75rem;
   display: flex;
   align-items: center;
   justify-content: center;
+  pointer-events: none;
+  box-shadow: 0 0 0 2px var(--card);
 }
 
 .notifications-dropdown {
@@ -320,19 +297,6 @@ onMounted(() => {
   color: var(--muted-foreground);
 }
 
-.user-profile {
-  position: relative;
-  cursor: pointer;
-}
-
-.avatar {
-  width: 2rem;
-  height: 2rem;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 2px solid var(--primary);
-}
-
 .user-menu {
   position: absolute;
   top: 100%;
@@ -382,30 +346,13 @@ onMounted(() => {
   width: 60px;
 }
 
-.collapse-button {
-  background: none;
-  border: none;
-  color: var(--foreground);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.5rem;
-  border-radius: 50%;
-  transition: background-color 0.2s;
-}
-
-.collapse-button:hover {
-  background-color: var(--muted);
-}
-
-.collapse-button svg {
-  color: #222; /* 默认浅色 */
-  transition: color 0.3s;
-}
-
 .dark-icon {
-  color: #fff !important; /* 深色模式下变白 */
+  color: #222;
+  transition: color 0.2s;
+}
+
+.dark-mode .dark-icon {
+  color: #f3f3f3;
 }
 
 body.dark .collapse-button svg {

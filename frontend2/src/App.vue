@@ -7,6 +7,7 @@
         <router-view />
       </main>
     </div>
+    <FooterBar />
   </div>
 </template>
 
@@ -15,6 +16,7 @@ import { computed, ref, onMounted } from 'vue';
 import { useAppStore } from './store';
 import Header from './components/Header.vue';
 import Sidebar from './components/Sidebar.vue';
+import FooterBar from './components/FooterBar.vue';
 
 const appStore = useAppStore();
 
