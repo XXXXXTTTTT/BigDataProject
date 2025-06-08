@@ -1,43 +1,75 @@
-import { createRouter, createWebHistory } from 'vue-router'
-
-const routes = [
-  {
-    path: '/dashboard',
-    name: 'Dashboard',
-    component: () => import('@/views/Dashboard.vue'),
-    meta: {
-      title: '数据概览',
-      keepAlive: true
-    }
-  },
-  {
-    path: '/uploader',
-    name: 'UploaderAnalysis',
-    component: () => import('@/views/UploaderAnalysis.vue'),
-    meta: {
-      title: 'UP主分析',
-      keepAlive: true
-    }
-  },
-  {
-    path: '/video',
-    name: 'VideoAnalysis',
-    component: () => import('@/views/VideoAnalysis.vue'),
-    meta: {
-      title: '视频分析',
-      keepAlive: true
-    }
-  }
-]
+import { createRouter, createWebHistory } from "vue-router"
+import Dashboard from "../views/Dashboard.vue"
 
 const router = createRouter({
-  history: createWebHistory(),
-  routes
+  history: createWebHistory(import.meta.env.BASE_URL),
+  routes: [
+    {
+      path: "/",
+      name: "dashboard",
+      component: Dashboard,
+    },
+    {
+      path: "/analytics",
+      name: "analytics",
+      component: () => import("../views/Analytics.vue"),
+    },
+    {
+      path: "/data-sources",
+      name: "data-sources",
+      component: () => import("../views/DataSources.vue"),
+    },
+    {
+      path: "/tables",
+      name: "tables",
+      component: () => import("../views/Tables.vue"),
+    },
+    {
+      path: "/reports",
+      name: "reports",
+      component: () => import("../views/Reports.vue"),
+    },
+    {
+      path: "/media",
+      name: "media",
+      component: () => import("../views/Media.vue"),
+    },
+    {
+      path: "/users",
+      name: "users",
+      component: () => import("../views/Users.vue"),
+    },
+    {
+      path: "/settings",
+      name: "settings",
+      component: () => import("../views/Settings.vue"),
+    },
+    {
+      path: "/login",
+      name: "login",
+      component: () => import("../views/Login.vue"),
+    },
+    {
+      path: "/hot-videos",
+      name: "hot-videos",
+      component: () => import("../views/HotVideos.vue"),
+    },
+    {
+      path: "/user-tracking",
+      name: "user-tracking",
+      component: () => import("../views/UserTracking.vue"),
+    },
+    {
+      path: "/up-select",
+      name: "up-select",
+      component: () => import("../views/UpSelect.vue"),
+    },
+    {
+      path: '/up-analysis',
+      name: 'UpAnalysis',
+      component: () => import('@/views/UpAnalysis.vue')
+    },
+  ],
 })
 
-router.beforeEach((to, from, next) => {
-  document.title = `${to.meta.title} - B站数据分析平台`
-  next()
-})
-
-export default router 
+export default router

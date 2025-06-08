@@ -44,15 +44,15 @@ const appStore = useAppStore();
 
 const menuItems = [
   { name: '首页', path: '/', icon: HomeIcon },
-  { name: '分析', path: '/analytics', icon: BarChartIcon },
-  { name: '数据源', path: '/data-sources', icon: DatabaseIcon },
-  { name: '表格', path: '/tables', icon: TableIcon },
-  { name: '报表', path: '/reports', icon: FileTextIcon },
-  { name: '媒体', path: '/media', icon: VideoIcon },
+  // { name: '分析', path: '/analytics', icon: BarChartIcon },
+  // { name: '数据源', path: '/data-sources', icon: DatabaseIcon },
+  // { name: '表格', path: '/tables', icon: TableIcon },
+  // { name: '报表', path: '/reports', icon: FileTextIcon },
+  // { name: '媒体', path: '/media', icon: VideoIcon },
   { name: '热门视频', path: '/hot-videos', icon: VideoIcon },
   { name: 'Up主查询', path: '/up-select', icon: UsersIcon },
-  { name: 'Up主分析', path: '/up-analysis', icon: UsersIcon },
-  { name: '用户', path: '/users', icon: UsersIcon },
+  { name: 'Up主分析', path: '/up-analysis', icon: BarChartIcon },
+  // { name: '用户', path: '/users', icon: UsersIcon },
   { name: '用户追踪', path: '/user-tracking', icon: SearchIcon },
   { name: '设置', path: '/settings', icon: SettingsIcon }
 ];
