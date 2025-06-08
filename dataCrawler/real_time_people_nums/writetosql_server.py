@@ -26,10 +26,10 @@ def insert_bilibili_data(data, host='localhost', port=3306, user='root', passwor
         
         with connection.cursor() as cursor:
             # 检查表是否存在，不存在则创建
-            cursor.execute("SHOW TABLES LIKE 'bilibili_hot_videos'")
+            cursor.execute("SHOW TABLES LIKE 'bilibili_hot_videos_server'")
             if not cursor.fetchone():
                 create_table_sql = """
-                CREATE TABLE bilibili_hot_videos (
+                CREATE TABLE bilibili_hot_videos_server (
                     timestamp BIGINT NOT NULL,
                     aid BIGINT NOT NULL,
                     videos INT,
@@ -78,18 +78,18 @@ def insert_bilibili_data(data, host='localhost', port=3306, user='root', passwor
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
                 """
                 cursor.execute(create_table_sql)
-                print("表 bilibili_hot_videos 创建成功")
+                print("表 bilibili_hot_videos_server 创建成功")
             else:
                 # 检查是否需要添加新字段
-                cursor.execute("SHOW COLUMNS FROM bilibili_hot_videos LIKE 'real_time_all'")
+                cursor.execute("SHOW COLUMNS FROM bilibili_hot_videos_server LIKE 'real_time_all'")
                 if not cursor.fetchone():
-                    cursor.execute("ALTER TABLE bilibili_hot_videos ADD COLUMN real_time_all VARCHAR(20) AFTER tags")
+                    cursor.execute("ALTER TABLE bilibili_hot_videos_server ADD COLUMN real_time_all VARCHAR(20) AFTER tags")
                     print("添加字段 real_time_all 成功")
                 
-                cursor.execute("SHOW COLUMNS FROM bilibili_hot_videos LIKE 'real_time_web'")
+                cursor.execute("SHOW COLUMNS FROM bilibili_hot_videos_server LIKE 'real_time_web'")
                 if not cursor.fetchone():
-                    cursor.execute("ALTER TABLE bilibili_hot_videos ADD COLUMN real_time_web VARCHAR(20) AFTER real_time_all")
-                    cursor.execute("ALTER TABLE bilibili_hot_videos ADD INDEX idx_real_time_all (real_time_all)")
+                    cursor.execute("ALTER TABLE bilibili_hot_videos_server ADD COLUMN real_time_web VARCHAR(20) AFTER real_time_all")
+                    cursor.execute("ALTER TABLE bilibili_hot_videos_server ADD INDEX idx_real_time_all (real_time_all)")
                     print("添加字段 real_time_web 成功")
             
             # 获取全局timestamp和formatted_time
@@ -103,7 +103,7 @@ def insert_bilibili_data(data, host='localhost', port=3306, user='root', passwor
             
             # 插入数据 - 添加实时在线人数字段
             insert_sql = """
-            INSERT INTO bilibili_hot_videos (
+            INSERT INTO bilibili_hot_videos_server (
                 timestamp, aid, videos, tid, tname, copyright, pic, title, pubdate, ctime,
                 `desc`, state, duration, tnamev2, pid_name_v2, short_link_v2, dynamic,
                 stat_view, stat_danmaku, stat_reply, stat_favorite, stat_coin, stat_share,
@@ -191,3 +191,6 @@ def insert_bilibili_data(data, host='localhost', port=3306, user='root', passwor
     finally:
         if connection:
             connection.close()
+
+if __name__ == '__main__':
+    insert_bilibili_data({})

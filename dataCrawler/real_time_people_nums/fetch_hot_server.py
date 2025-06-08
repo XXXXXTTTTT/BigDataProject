@@ -4,7 +4,7 @@ import json
 from typing import List, Dict
 import logging
 import time
-import writetosql
+import writetosql_server
 
 # 设置日志
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -93,7 +93,6 @@ async def fetch_tags(session: aiohttp.ClientSession, aid: str, retries: int = RE
     return []
 
 async def add_tags(videos_list: List[Dict]):
-
     semaphore = asyncio.Semaphore(MAX_CONCURRENT)  # 限制最大并发数
 
     async def fetch_tags_for_video(i: int, d: Dict):
@@ -107,8 +106,7 @@ async def add_tags(videos_list: List[Dict]):
 
     tasks = [fetch_tags_for_video(i, d) for i, d in enumerate(videos_list)]
     await asyncio.gather(*tasks)
-    
-    
+
 async def fetch_online_count(session: aiohttp.ClientSession, bvid: str, cid: str, retries: int = RETRY_ATTEMPTS) -> Dict[str, str]:
     """
     异步获取视频实时在线人数
@@ -138,7 +136,6 @@ async def fetch_online_count(session: aiohttp.ClientSession, bvid: str, cid: str
     logger.error(f"Online count fetch for bvid {bvid} failed after {retries} attempts")
     return {"real_time_all": "0", "real_time_web": "0"}
 
-
 async def add_real_time_people(videos_list: List[Dict]):
     """
     为视频列表添加实时在线人数信息
@@ -164,8 +161,8 @@ async def add_real_time_people(videos_list: List[Dict]):
 
     tasks = [fetch_online_for_video(i, d) for i, d in enumerate(videos_list)]
     await asyncio.gather(*tasks)
-    
-def process_json_data(data: List[Dict]) -> List[Dict]:
+
+def process_json_data(data: Dict) -> Dict:
     keys_to_extract = [
         'aid', 'videos', 'tid', 'tname', 'copyright', 'pic', 'title', 'pubdate',
         'ctime', 'desc', 'state', 'duration', 'mission_id', 'pub_location',
@@ -198,7 +195,7 @@ def process_json_data(data: List[Dict]) -> List[Dict]:
     
     return result
 
-def process_data(data:List[Dict]) -> List[Dict]:
+def process_data(data: List[Dict]) -> List[Dict]:
     res = []
     for d in data:
         res.append(process_json_data(d))
@@ -215,7 +212,7 @@ async def record():
     
     videos_list = await fetch_all_pages(total_items=500, ps=50)
     await add_tags(videos_list)
-    await add_real_time_people(videos_list)  # 添加这一行
+    await add_real_time_people(videos_list)  # 添加实时在线人数
     videos_list = process_data(videos_list)
     
     hot_videos_dict["data"] = videos_list
@@ -224,18 +221,24 @@ async def record():
         json.dump(hot_videos_dict, f, ensure_ascii=False, indent=2)
     logger.info(f"Successfully fetched {len(videos_list)} videos")
     
-    success = writetosql.insert_bilibili_data(data=hot_videos_dict)
+    success = writetosql_server.insert_bilibili_data(data=hot_videos_dict)
     if success:
         print("=======success to insert into database=======")
     else:
         print("=======failed to insert into database=======")
-    
 
-async def main(loop:bool=False,interval:int=1800):
+def wait_for_seconds(seconds: int) -> None:
+    while seconds > 0:
+        logger.info(f'countdown:{seconds}s')
+        time.sleep(1)
+        seconds -= 1
+
+async def main(loop: bool = False, interval: int = 1800):
     await record()
     while loop:
-        time.sleep(interval)
+        logger.info(f'Get new data after {interval} seconds.')
+        wait_for_seconds(interval)
         await record()
         
 if __name__ == "__main__":
-    asyncio.run(main())
+    asyncio.run(main(loop=True, interval=3600))
