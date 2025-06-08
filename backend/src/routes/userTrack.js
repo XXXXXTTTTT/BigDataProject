@@ -30,7 +30,6 @@ const STOP_WORDS = new Set([
 
 function countWords(comments,name) {
     const wordMap = new Map();
-    console.log(name);
     STOP_WORDS.add(name);
     
     comments.forEach(comment => {
@@ -102,7 +101,6 @@ async function getUserInfo(uid) {
 
 // 获取所有评论数据
 async function getAllComments(uid) {
-    console.log("get_item");
     const allReplies = [];
     let page = 1;
     let hasMore = true;
@@ -210,7 +208,6 @@ function extractCommentsWithTokenLimit(replies, tokenLimit = 64000) {
             break; // 超出限制后停止处理
         }
     }
-    console.log(totalTokens);
     return comments;
 }
 
