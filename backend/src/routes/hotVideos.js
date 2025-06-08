@@ -6,7 +6,10 @@ const pool = require('../db');
 router.get('/', async (req, res) => {
   try {
     const [rows] = await pool.query(
-      `SELECT * FROM bilibili_hot_videos_server WHERE \`timestamp\` = (SELECT MAX(\`timestamp\`) FROM bilibili_hot_videos_server);`
+      `SELECT *
+      FROM bilibili_hot_videos_server t1
+      WHERE timestamp = (SELECT MAX(timestamp) FROM bilibili_hot_videos_server t2 WHERE t2.aid = t1.aid);
+      `
     );
     res.json({ code: 0, data: rows });
   } catch (error) {
@@ -331,6 +334,39 @@ router.get('/analyze/video-types', async (req, res) => {
     res.json({ code: 0, data: rows });
   } catch (error) {
     console.error('video-types查询失败:', error);
+    res.status(500).json({ code: 1, message: '服务器内部错误' });
+  }
+});
+
+//GET /api/hot-videos/analyze/video-info?aid=
+router.get('/analyze/video-info', async (req, res) => {
+  const aid = req.query.aid;
+  if (!aid) {
+    return res.status(400).json({ code: 1, message: '缺少参数aid' });
+  }
+  try {
+    const [rows] = await pool.query(`
+      SELECT
+          timestamp,
+          FROM_UNIXTIME(timestamp) as time_formatted,
+          stat_view,
+          stat_danmaku,
+          stat_reply,
+          stat_favorite,
+          stat_coin,
+          stat_share,
+          stat_like,
+          stat_view - LAG(stat_view) OVER (ORDER BY timestamp) as view_growth,
+          stat_danmaku - LAG(stat_danmaku) OVER (ORDER BY timestamp) as danmaku_growth,
+          stat_reply - LAG(stat_reply) OVER (ORDER BY timestamp) as reply_growth,
+          stat_like - LAG(stat_like) OVER (ORDER BY timestamp) as like_growth
+      FROM bilibili_hot_videos_server 
+      WHERE aid = ?
+      ORDER BY timestamp;
+    `, [aid]);
+    res.json({ code: 0, data: rows });
+  } catch (error) {
+    console.error('video-info查询失败:', error);
     res.status(500).json({ code: 1, message: '服务器内部错误' });
   }
 });
