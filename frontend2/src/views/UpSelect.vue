@@ -3,10 +3,13 @@
     <div class="page-header">
       <h2>UP主详细数据</h2>
       <div class="search-bar">
-        <input v-model="searchName" placeholder="输入UP主昵称进行模糊搜索" @keyup.enter="searchUp" />
-        <input v-model="searchUid" placeholder="输入UID精确搜索" @keyup.enter="searchUp" type="number" />
-        <button @click="searchUp">搜索</button>
-        <button @click="resetSearch">重置</button>
+        <div class="search-box">
+          <span class="search-icon"><SearchIcon /></span>
+          <input v-model="searchName" placeholder="输入UP主昵称搜索" @keyup.enter="searchUp" />
+          <input v-model="searchUid" placeholder="输入UID搜索" @keyup.enter="searchUp" type="number" />
+          <button class="search-btn" @click="searchUp">搜索</button>
+          <button class="reset-btn" @click="resetSearch">重置</button>
+        </div>
       </div>
     </div>
     <div class="up-gallery">
@@ -50,6 +53,7 @@
 <script setup>
 import { ref, computed } from 'vue';
 import axios from 'axios';
+import { Search as SearchIcon } from 'lucide-vue-next';
 
 const upList = ref([]);
 const searchName = ref('');
@@ -118,16 +122,37 @@ searchUp();
 }
 .search-bar {
   display: flex;
-  gap: 0.75rem;
+  align-items: center;
+  justify-content: flex-start;
+  margin-bottom: 0.5rem;
 }
-.search-bar input {
-  padding: 0.5rem 1rem;
-  border: 1px solid var(--border);
-  border-radius: 6px;
+.search-box {
+  display: flex;
+  align-items: center;
+  background: var(--muted);
+  border-radius: 8px;
+  padding: 0.25rem 0.5rem;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  gap: 0.5rem;
+}
+.search-icon {
+  display: flex;
+  align-items: center;
+  color: var(--muted-foreground);
+  font-size: 1.2rem;
+  margin-right: 0.2rem;
+}
+.search-box input {
+  border: none;
+  outline: none;
+  background: transparent;
   font-size: 1rem;
+  padding: 0.5rem 0.7rem;
+  border-radius: 6px;
+  min-width: 140px;
 }
-.search-bar button {
-  padding: 0.5rem 1.2rem;
+.search-btn {
+  padding: 0.45rem 1.1rem;
   border: none;
   border-radius: 6px;
   background: var(--primary);
@@ -135,9 +160,26 @@ searchUp();
   font-size: 1rem;
   cursor: pointer;
   transition: background 0.2s;
+  margin-left: 0.5rem;
 }
-.search-bar button:hover {
+.search-btn:hover {
   background: var(--primary-hover, #1890ff);
+}
+.reset-btn {
+  padding: 0.45rem 1.1rem;
+  border: none;
+  border-radius: 6px;
+  background: var(--muted);
+  color: var(--foreground);
+  font-size: 1rem;
+  cursor: pointer;
+  margin-left: 0.3rem;
+  border: 1px solid var(--border);
+  transition: background 0.2s;
+}
+.reset-btn:hover {
+  background: var(--primary-light);
+  color: var(--primary);
 }
 .up-gallery {
   display: flex;
