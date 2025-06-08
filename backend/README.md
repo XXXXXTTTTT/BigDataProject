@@ -1,7 +1,7 @@
 # Bilibili 热门视频后端API
 
-## 项目简介
-本项目基于 Express.js，提供 Bilibili 热门视频数据的API接口。
+## 模块简介
+本模块基于 Express.js，提供 Bilibili 数据的API接口。
 
 ## 启动方式
 
@@ -18,6 +18,9 @@
    npm start
    ```
 
-## 默认接口
+## 接口总览
 - `GET /api/hot-videos` 获取最新一批Bilibili热门视频数据。
+- `GET /api/up-profile`获取全部UP主的信息
+- `GET /api/up-profile/analysis`获取UP主用于聚类分析时的特征值以及聚类标签
+- `GET /api/up-profile/summary`获取爬取的全部Up主数据统计
 
