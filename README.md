@@ -7,5 +7,6 @@
 
 首先进入backend根据ReadMe文件运行后端
 
-再进入frontend2根据ReadMe文件运行前端即可
+再进入frontend根据ReadMe文件运行前端即可
+
 
