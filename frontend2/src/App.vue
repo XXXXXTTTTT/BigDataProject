@@ -34,7 +34,7 @@ onMounted(() => {
 </script>
 
 <style>
-/* 全局样式已在 main.css 中定义 */
+/* 全局样式在 main.css 中定义 */
 .main-container {
   display: flex;
   flex: 1;
@@ -45,5 +45,6 @@ onMounted(() => {
   flex: 1;
   padding: 1.5rem;
   overflow-y: auto;
+  margin-left: 50px;
 }
 </style>
