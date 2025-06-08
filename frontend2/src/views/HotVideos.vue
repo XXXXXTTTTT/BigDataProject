@@ -40,7 +40,7 @@ import { ref, computed, onMounted } from 'vue';
 import axios from 'axios';
 
 const videos = ref([]);
-const pageSize = 50;
+const pageSize = 48;
 const currentPage = ref(1);
 
 const totalPages = computed(() => Math.ceil(videos.value.length / pageSize));

@@ -2,6 +2,8 @@ const express = require('express');
 const cors = require('cors');
 const hotVideosRouter = require('./routes/hotVideos');
 const proxyRouter = require('./routes/proxy');
+const upProfileRouter = require('./routes/upProfile') 
+// const upAnalysisRouter = require('./routes/upProfile/analysis')
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -12,6 +14,8 @@ app.use(express.json());
 // 路由
 app.use('/api/hot-videos', hotVideosRouter);
 app.use('/proxy', proxyRouter);
+app.use('/api/up-profile', upProfileRouter);
+// app.use('/api/up-analysis', upAnalysisRouter);
 
 // 404处理
 app.use((req, res) => {
