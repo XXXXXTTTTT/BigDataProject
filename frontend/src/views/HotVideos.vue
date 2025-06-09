@@ -189,6 +189,20 @@
       <div class="page-header">
         <h2>热门B站视频</h2>
       </div>
+      <div class="video-search-bar" style="margin-bottom: 1.5rem; text-align: right;">
+        <input
+          v-model="searchInput"
+          type="text"
+          placeholder="搜索视频标题"
+          class="video-search-input"
+          style="padding: 0.5rem 1rem; border-radius: 6px; border: 1px solid var(--border); width: 220px; font-size: 1rem;"
+          @keyup.enter="doSearch"
+        />
+        <button class="video-search-btn" @click="doSearch" style="margin-left: 0.5rem; padding: 0.5rem 1.2rem; border-radius: 6px; border: none; background: var(--primary); color: #fff; font-size: 1rem; cursor: pointer; display: inline-flex; align-items: center;">
+          <svg style="width: 1.2em; height: 1.2em; margin-right: 0.3em;" viewBox="0 0 24 24" fill="none"><path d="M21 21l-4.35-4.35M11 19a8 8 0 1 1 0-16 8 8 0 0 1 0 16Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          搜索
+        </button>
+      </div>
       <div class="video-gallery">
         <div class="video-card" v-for="item in pagedVideos" :key="item.aid">
           <div class="video-thumb">
@@ -352,10 +366,19 @@ const currentPage = ref(1);
 const showCard = ref(false);
 const selectedVideo = ref(null);
 
-const totalPages = computed(() => Math.ceil(videos.value.length / pageSize));
+const searchInput = ref('');
+const searchKeyword = ref('');
+
+const filteredVideos = computed(() => {
+  if (!searchKeyword.value) return videos.value;
+  return videos.value.filter(item =>
+    item.title && item.title.toLowerCase().includes(searchKeyword.value.toLowerCase())
+  );
+});
+const totalPages = computed(() => Math.ceil(filteredVideos.value.length / pageSize));
 const pagedVideos = computed(() => {
   const start = (currentPage.value - 1) * pageSize;
-  return videos.value.slice(start, start + pageSize);
+  return filteredVideos.value.slice(start, start + pageSize);
 });
 
 // 监听activeTab变化，重新渲染图表
@@ -1795,6 +1818,12 @@ onUnmounted(() => {
     analysisChartInstance.dispose();
   }
 });
+
+// 只在点击按钮或回车时更新searchKeyword
+const doSearch = () => {
+  searchKeyword.value = searchInput.value.trim();
+  currentPage.value = 1; // 搜索后回到第一页
+};
 </script>
 
 <style scoped>
@@ -2331,5 +2360,9 @@ onUnmounted(() => {
   color: #fff;
   box-shadow: 0 6px 24px rgba(251, 114, 153, 0.18);
   transform: translateY(-2px) scale(1.04);
+}
+
+.video-search-btn:hover {
+  background: var(--primary-dark, #c2185b);
 }
 </style>
