@@ -4,9 +4,12 @@ const OpenAI = require('openai');
 const { HttpsProxyAgent } = require('https-proxy-agent');
 const router = express.Router();
 
-const Segment = require('segment');
-const segment = new Segment();
-segment.useDefault();
+const { Jieba } = require('@node-rs/jieba-win32-x64-msvc');
+const jieba = new Jieba();
+
+// const Segment = require('segment');
+// const segment = new Segment();
+// segment.useDefault();
 
 let fetch;
 (async () => { fetch = (await import('node-fetch')).default; })();
@@ -37,10 +40,14 @@ function countWords(comments,name) {
             return;
         }
         
+
+        // 替换原 segment 的分词逻辑
+        const words = jieba.cut(comment.comment, true);  // false 表示不使用 HMM 模型
+
         // 使用 segment 进行分词
-        const words = segment.doSegment(comment.comment, {
-            simple: true  // 返回简单的字符串数组
-        });
+        // const words = segment.doSegment(comment.comment, {
+        //     simple: true  // 返回简单的字符串数组
+        // });
         
         words.forEach(word => {
             const cleanWord = word.trim();
@@ -321,7 +328,8 @@ router.get('/', async (req, res) => {
         
         // 3. 统计词频
         const word_count = countWords(replies,userInfo.name);
-        
+
+        console.log(word_count);
         // 4. 调用 DeepSeek 分析
         const aiAnalysis = await analyzeUserComments(replies);
         
